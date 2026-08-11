@@ -1,0 +1,34 @@
+{
+  "name": "nosbe-reader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lecteur de livre protege, acces payant par mobile money",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:init": "node scripts/init-db.mjs",
+    "db:backup": "node scripts/backup-db.mjs",
+    "gen:secret": "node scripts/gen-secret.mjs",
+    "gen:icons": "node scripts/gen-icons.mjs",
+    "gen:og": "node scripts/gen-og-image.mjs"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.7",
+    "jose": "^6.0.11",
+    "next": "^15.4.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "server-only": "^0.0.1",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3"
+  }
+}

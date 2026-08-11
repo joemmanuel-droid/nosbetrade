@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/*
+  Identite visuelle volontairement mono-theme (sombre), fidele au PDF source
+  et coherente avec l'usage typique (lecture en soirée, ecran OLED, terminal
+  de trading). Toutes les couleurs passent par ces variables : aucune couleur
+  brute ailleurs dans le code.
+*/
+:root {
+  --bg: #0a0e17;
+  --surface: #10151f;
+  --surface-2: #161c2a;
+  --surface-3: #1d2436;
+  --border: #242c40;
+  --border-soft: #1a2032;
+
+  --text: #eef1f8;
+  --text-dim: #9aa4bc;
+  --text-faint: #626d89;
+
+  --gold: #d9a63e;
+  --gold-soft: #f0c766;
+  --gold-dim: #8a6a26;
+
+  --green: #22c48a;
+  --green-soft: #5fd9a4;
+  --green-bg: rgba(34, 196, 138, 0.12);
+
+  --red: #e5484d;
+  --red-soft: #f28086;
+  --red-bg: rgba(229, 72, 77, 0.12);
+
+  --blue: #4b8bf5;
+  --blue-soft: #85adf7;
+  --blue-bg: rgba(75, 139, 245, 0.12);
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 22px;
+
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--gold-dim);
+  color: var(--text);
+}
+
+/* Barre de defilement discrete (webkit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-3);
+}
+
+/* Typographie du lecteur : mode "confort" avec taille reglable via --reader-size */
+.reader-prose {
+  font-size: var(--reader-size, 17px);
+  line-height: 1.75;
+  color: var(--text);
+}
+.reader-prose p {
+  margin: 0 0 1.1em;
+  color: var(--text-dim);
+}
+.reader-prose strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .reader-prose {
+    line-height: 1.7;
+  }
+}
