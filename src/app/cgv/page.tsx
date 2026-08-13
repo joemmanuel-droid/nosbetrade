@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LegalPage, Placeholder, Section } from '@/components/LegalPage';
+import { LegalPage, Section } from '@/components/LegalPage';
 import { BOOK, CHAPTERS, FREE_CHAPTER_COUNT } from '@/content/book';
 import { MANUAL_TARGETS, MERCHANT_NAME, PRODUCT, SUPPORT_WHATSAPP, formatXof } from '@/lib/config';
 
@@ -52,9 +52,6 @@ export default function CgvPage() {
           exercer de droit de rétractation une fois l'accès activé. Toute demande de remboursement avant
           activation de l'accès peut être adressée via WhatsApp et sera étudiée au cas par cas.
         </p>
-        <p className="text-sm">
-          <Placeholder>À confirmer avec un professionnel du droit local : délai légal de rétractation applicable, le cas échéant, aux contenus numériques au Burkina Faso.</Placeholder>
-        </p>
       </Section>
 
       <Section title="6. Propriété intellectuelle et usage autorisé">
@@ -85,16 +82,18 @@ export default function CgvPage() {
           Le numéro de téléphone de l'Acheteur est utilisé uniquement pour l'authentification, la gestion de
           l'accès et le support client. Il n'est ni revendu ni transmis à des tiers à des fins commerciales.
         </p>
-        <p className="text-sm">
-          <Placeholder>Politique de confidentialité détaillée et base légale de traitement à formaliser avec un professionnel, conformément à la réglementation applicable en matière de protection des données personnelles.</Placeholder>
+        <p>
+          La base de ce traitement est l'exécution du service souscrit par l'Acheteur : sans ce numéro,
+          l'accès au compte et au livre ne peut techniquement pas fonctionner. Les données sont conservées
+          pour la durée de vie du compte ; l'Acheteur peut demander leur suppression à tout moment via
+          WhatsApp, ce qui entraîne la fermeture du compte et la perte de l'accès.
         </p>
       </Section>
 
       <Section title="10. Droit applicable et litiges">
         <p>
-          Les présentes conditions sont soumises au droit{' '}
-          <Placeholder>pays/juridiction à confirmer — Burkina Faso par défaut</Placeholder>. En cas de litige,
-          l'Acheteur est invité à contacter le Vendeur via WhatsApp avant toute autre démarche.
+          Les présentes conditions sont soumises au droit burkinabè. En cas de litige, l'Acheteur est invité à
+          contacter le Vendeur via WhatsApp avant toute autre démarche.
         </p>
       </Section>
 
