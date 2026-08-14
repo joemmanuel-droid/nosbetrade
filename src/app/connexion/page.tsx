@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { TURNSTILE_SITE_KEY } from '@/lib/config';
+import { AUTH_MODE, TURNSTILE_SITE_KEY } from '@/lib/config';
 import { AuthForm } from '@/components/AuthForm';
 
 export default async function ConnexionPage({
@@ -25,7 +25,11 @@ export default async function ConnexionPage({
         </p>
       </div>
 
-      <AuthForm next={safeNext} turnstileSiteKey={TURNSTILE_SITE_KEY || undefined} />
+      <AuthForm
+        next={safeNext}
+        turnstileSiteKey={TURNSTILE_SITE_KEY || undefined}
+        phoneOnly={AUTH_MODE === 'phone_only'}
+      />
 
       <Link href="/" className="mt-6 text-center text-sm text-[var(--text-faint)] underline underline-offset-2">
         ← Retour à l'accueil

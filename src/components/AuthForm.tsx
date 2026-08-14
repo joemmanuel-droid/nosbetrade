@@ -7,7 +7,16 @@ import { TurnstileWidget } from './TurnstileWidget';
 
 type Step = 'phone' | 'code';
 
-export function AuthForm({ next, turnstileSiteKey }: { next: string; turnstileSiteKey?: string }) {
+export function AuthForm({
+  next,
+  turnstileSiteKey,
+  phoneOnly,
+}: {
+  next: string;
+  turnstileSiteKey?: string;
+  /** AUTH_MODE=phone_only : connexion instantanee, aucun code a saisir. */
+  phoneOnly?: boolean;
+}) {
   const router = useRouter();
   const [step, setStep] = useState<Step>('phone');
   const [localNumber, setLocalNumber] = useState('');
@@ -35,6 +44,25 @@ export function AuthForm({ next, turnstileSiteKey }: { next: string; turnstileSi
     setError(null);
     const candidate = `+226${localNumber.replace(/\D/g, '')}`;
     setLoading(true);
+
+    if (phoneOnly) {
+      try {
+        const res = await fetch('/api/auth/phone-only', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: candidate }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Numéro invalide.');
+        router.push(next || '/lire');
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur inconnue.');
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/otp/request', {
         method: 'POST',
@@ -94,7 +122,9 @@ export function AuthForm({ next, turnstileSiteKey }: { next: string; turnstileSi
             </div>
           </div>
 
-          {turnstileSiteKey && <TurnstileWidget siteKey={turnstileSiteKey} onToken={setTurnstileToken} />}
+          {!phoneOnly && turnstileSiteKey && (
+            <TurnstileWidget siteKey={turnstileSiteKey} onToken={setTurnstileToken} />
+          )}
 
           {error && <p className="text-sm text-[var(--red-soft)]">{error}</p>}
 
@@ -105,14 +135,16 @@ export function AuthForm({ next, turnstileSiteKey }: { next: string; turnstileSi
             disabled={
               loading ||
               localNumber.replace(/\D/g, '').length !== 8 ||
-              (!!turnstileSiteKey && !turnstileToken)
+              (!phoneOnly && !!turnstileSiteKey && !turnstileToken)
             }
           >
-            {loading ? <Spinner /> : 'Recevoir le code'}
+            {loading ? <Spinner /> : phoneOnly ? 'Continuer' : 'Recevoir le code'}
           </Button>
 
           <p className="text-center text-xs text-[var(--text-faint)]">
-            Un code à 6 chiffres te sera envoyé par SMS pour confirmer ce numéro.
+            {phoneOnly
+              ? 'Connexion immédiate avec ce numéro.'
+              : 'Un code à 6 chiffres te sera envoyé par SMS pour confirmer ce numéro.'}
           </p>
         </form>
       </Card>

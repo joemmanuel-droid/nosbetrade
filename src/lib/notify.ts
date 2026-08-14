@@ -56,8 +56,11 @@ async function sendViaTwilio(phone: string, message: string): Promise<{ delivere
   const wrap = (n: string) =>
     TWILIO.channel === 'whatsapp' && !n.startsWith('whatsapp:') ? `whatsapp:${n}` : n;
 
+  // L'authentification Basic accepte AccountSid:AuthToken OU ApiKeySid:ApiKeySecret ;
+  // le SID de compte dans l'URL reste toujours le vrai Account SID dans les deux cas.
+  const basicUser = TWILIO.apiKeySid || TWILIO.accountSid;
   const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO.accountSid}/Messages.json`;
-  const basicAuth = Buffer.from(`${TWILIO.accountSid}:${TWILIO.authToken}`).toString('base64');
+  const basicAuth = Buffer.from(`${basicUser}:${TWILIO.authToken}`).toString('base64');
   const body = new URLSearchParams({
     To: wrap(phone),
     From: wrap(TWILIO.fromNumber),

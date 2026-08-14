@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { adminUnlockRequired, getSession, isAdminUnlocked } from '@/lib/auth';
-import { formatXof } from '@/lib/config';
+import { AUTH_MODE, formatXof } from '@/lib/config';
 import { query, queryOne } from '@/lib/db';
 import { Badge, Card } from '@/components/ui';
 import { AdminOrders, type AdminOrder } from '@/components/admin/AdminOrders';
@@ -56,6 +56,18 @@ export default async function AdminPage() {
           {adminUnlockRequired() && <AdminLockButton />}
         </div>
       </div>
+
+      {AUTH_MODE === 'phone_only' && (
+        <div className="mb-6 rounded-[var(--radius-sm)] border-l-[3px] border-l-[var(--red)] bg-[var(--red-bg)] p-4">
+          <p className="text-sm font-semibold text-[var(--red-soft)]">
+            ⚠️ Mode sans vérification actif (AUTH_MODE=phone_only)
+          </p>
+          <p className="mt-1 text-sm text-[var(--text-dim)]">
+            N'importe qui entrant un numéro se connecte avec ce numéro, sans preuve. À désactiver dès
+            qu'une passerelle SMS est branchée — voir le README.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-2.5">
         <Card className="p-3.5 text-center">

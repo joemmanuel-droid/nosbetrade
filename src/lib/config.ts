@@ -121,7 +121,28 @@ if (ADMIN_ACCESS_CODE && ADMIN_ACCESS_CODE.length < 10) {
 }
 
 /**
- * Transport du code OTP.
+ * Mode d'authentification.
+ * - `otp`         : comportement normal, code a 6 chiffres verifie (defaut, sur).
+ * - `phone_only`  : AUCUNE verification — n'importe qui entrant un numero se
+ *                   connecte instantanement avec ce numero. Decision produit
+ *                   explicite pour lever la friction le temps qu'une
+ *                   passerelle SMS soit branchee ; N'IMPORTE QUI connaissant
+ *                   le numero d'un client peut alors lire son livre achete a
+ *                   sa place. A desactiver (repasser a `otp`) des que
+ *                   possible — voir README, section "Mode sans verification".
+ *                   Le second facteur admin (ADMIN_ACCESS_CODE) reste actif
+ *                   independamment : /admin n'est pas affaibli par ce mode.
+ */
+export const AUTH_MODE = (env('AUTH_MODE', 'otp') as 'otp' | 'phone_only') || 'otp';
+if (AUTH_MODE === 'phone_only') {
+  console.warn(
+    '[config] AUTH_MODE=phone_only — AUCUNE verification de telephone. ' +
+      "N'importe qui entrant le numero d'un client accede a son compte. Mode temporaire, voir README.",
+  );
+}
+
+/**
+ * Transport du code OTP (ignore si AUTH_MODE=phone_only).
  * - `console` : ecrit dans les logs serveur (developpement / test prive).
  * - `twilio`  : envoi reel par SMS ou WhatsApp via Twilio.
  * - `http`    : POST generique { to, message } vers OTP_HTTP_URL, pour
@@ -143,6 +164,11 @@ export const OTP_MAX_ATTEMPTS = envInt('OTP_MAX_ATTEMPTS', 5);
 export const TWILIO = {
   accountSid: env('TWILIO_ACCOUNT_SID'),
   authToken: env('TWILIO_AUTH_TOKEN'),
+  // Optionnel : une cle API (SID commencant par "SK") peut remplacer le
+  // couple AccountSid/AuthToken pour l'authentification Basic — Twilio
+  // accepte les deux de facon interchangeable. Si presente, TWILIO_AUTH_TOKEN
+  // doit alors contenir le "Client secret" de cette cle API.
+  apiKeySid: env('TWILIO_API_KEY_SID'),
   fromNumber: env('TWILIO_FROM_NUMBER'), // ex: +15017122661, ou "whatsapp:+14155238886" pour le sandbox WhatsApp
   channel: (env('TWILIO_CHANNEL', 'sms') as 'sms' | 'whatsapp') || 'sms',
 };

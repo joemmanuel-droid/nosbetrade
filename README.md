@@ -107,6 +107,32 @@ back-office même en réussissant à se connecter avec le numéro admin.
   clients, si tu as accès à une deuxième ligne. Les deux protections se
   cumulent sans conflit.
 
+## Mode sans vérification (temporaire)
+
+`AUTH_MODE=phone_only` supprime toute vérification à la connexion : quiconque
+tape un numéro se connecte immédiatement avec ce numéro, sans code, sans
+preuve. **Décision produit assumée** le temps qu'une passerelle SMS soit
+branchée (voir la section Twilio ci-dessus) — pas un défaut.
+
+**Le risque concret** : n'importe qui connaissant le numéro d'un client (visible
+sur son reçu Mobile Money, dans tes contacts WhatsApp...) peut taper ce numéro
+et lire **son** livre acheté à sa place. Le paywall lui-même reste intact —
+c'est l'identité qui n'est plus vérifiée.
+
+- **Non affaibli par ce mode** : `/admin` reste protégé par
+  `ADMIN_ACCESS_CODE` (second facteur indépendant, voir ci-dessus) — une
+  connexion sans vérification sur le numéro admin ne suffit pas à ouvrir le
+  back-office.
+- Chaque connexion dans ce mode est marquée `user.login_unverified` /
+  `user.created_unverified` dans `audit_log`, pour pouvoir distinguer après
+  coup les comptes créés sans preuve.
+- **Pour désactiver** (dès qu'une passerelle SMS ou WhatsApp est prête) :
+  repasse `AUTH_MODE=otp` (ou supprime la variable, `otp` est le défaut) et
+  redéploie. Aucune autre modification necessaire — le systeme de code à 6
+  chiffres n'a jamais été retiré du code, juste court-circuité.
+- Un bandeau rouge visible s'affiche en haut de `/admin` tant que ce mode est
+  actif, pour ne pas l'oublier.
+
 ## Architecture
 
 ```
@@ -161,6 +187,7 @@ Les plus importantes :
 | `SESSION_SECRET` | Signature des sessions. Génère avec `npm run gen:secret`. **Obligatoire en production** (l'app refuse de démarrer sans). |
 | `DATABASE_URL` | `file:./data/app.db` en local, `libsql://...` (Turso) en production. |
 | `PAYMENT_PROVIDER` | `simulation` (dev) / `cinetpay` / `ligdicash`. Le bouton auto reste masqué aux vrais clients tant que c'est `simulation`. |
+| `AUTH_MODE` | `otp` (défaut, sûr) / `phone_only` (**aucune vérification**, voir [Mode sans vérification](#mode-sans-vérification-temporaire)). |
 | `OTP_TRANSPORT` | `console` (dev/test privé, code dans les logs serveur) / `twilio` (SMS ou WhatsApp réel, voir ci-dessous) / `http` (passerelle générique). |
 | `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | Identifiants Twilio pour l'envoi réel des codes OTP. |
 | `TWILIO_CHANNEL` | `sms` (défaut) ou `whatsapp` — même compte Twilio pour les deux, un seul réglage à changer. |
