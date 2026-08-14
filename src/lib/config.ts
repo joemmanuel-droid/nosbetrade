@@ -120,12 +120,32 @@ if (ADMIN_ACCESS_CODE && ADMIN_ACCESS_CODE.length < 10) {
   );
 }
 
-/** Transport du code OTP. `console` ecrit dans les logs serveur (dev). */
-export const OTP_TRANSPORT = env('OTP_TRANSPORT', 'console') as 'console' | 'http';
+/**
+ * Transport du code OTP.
+ * - `console` : ecrit dans les logs serveur (developpement / test prive).
+ * - `twilio`  : envoi reel par SMS ou WhatsApp via Twilio.
+ * - `http`    : POST generique { to, message } vers OTP_HTTP_URL, pour
+ *               brancher n'importe quelle autre passerelle.
+ */
+export const OTP_TRANSPORT = env('OTP_TRANSPORT', 'console') as 'console' | 'twilio' | 'http';
 export const OTP_HTTP_URL = env('OTP_HTTP_URL');
 export const OTP_HTTP_TOKEN = env('OTP_HTTP_TOKEN');
 export const OTP_TTL_SECONDS = envInt('OTP_TTL_SECONDS', 600);
 export const OTP_MAX_ATTEMPTS = envInt('OTP_MAX_ATTEMPTS', 5);
+
+/**
+ * Twilio — https://console.twilio.com
+ * `channel: 'sms'` envoie un SMS classique ; `channel: 'whatsapp'` envoie un
+ * message WhatsApp (le compte Twilio doit avoir WhatsApp active, sandbox ou
+ * numero de production approuve par Meta). Le meme compte gere les deux :
+ * changer de canal ne demande qu'une variable, pas un nouveau prestataire.
+ */
+export const TWILIO = {
+  accountSid: env('TWILIO_ACCOUNT_SID'),
+  authToken: env('TWILIO_AUTH_TOKEN'),
+  fromNumber: env('TWILIO_FROM_NUMBER'), // ex: +15017122661, ou "whatsapp:+14155238886" pour le sandbox WhatsApp
+  channel: (env('TWILIO_CHANNEL', 'sms') as 'sms' | 'whatsapp') || 'sms',
+};
 
 /**
  * Cloudflare Turnstile (anti-bot sur la demande de code OTP) — entierement

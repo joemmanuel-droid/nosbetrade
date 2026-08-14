@@ -5,20 +5,23 @@ import {
   OTP_HTTP_TOKEN,
   OTP_HTTP_URL,
   OTP_TRANSPORT,
+  TWILIO,
   formatXof,
 } from './config';
 import { formatPhone, maskPhone } from './phone';
 
 /**
- * Envoi du code OTP. Deux transports :
- *  - `console` : le code est ecrit dans les logs serveur (developpement).
- *  - `http`    : POST vers une passerelle SMS/WhatsApp de ton choix.
- *
- * La passerelle recoit { to, message } et doit repondre 2xx. N'importe quel
- * agregateur SMS local peut etre branche ici sans toucher au reste du code.
+ * Envoi du code OTP. Trois transports :
+ *  - `console` : le code est ecrit dans les logs serveur (developpement / test prive).
+ *  - `twilio`  : SMS ou WhatsApp reel via Twilio.
+ *  - `http`    : POST generique { to, message } vers une passerelle de ton choix.
  */
 export async function sendOtp(phone: string, code: string): Promise<{ delivered: boolean }> {
   const message = `${MERCHANT_NAME} : ton code de connexion est ${code}. Il expire dans 10 minutes. Ne le partage avec personne.`;
+
+  if (OTP_TRANSPORT === 'twilio' && TWILIO.accountSid && TWILIO.authToken && TWILIO.fromNumber) {
+    return sendViaTwilio(phone, message);
+  }
 
   if (OTP_TRANSPORT === 'http' && OTP_HTTP_URL) {
     try {
@@ -43,6 +46,42 @@ export async function sendOtp(phone: string, code: string): Promise<{ delivered:
 
   console.log(`\n[OTP] ${maskPhone(phone)} -> code ${code}\n`);
   return { delivered: false };
+}
+
+/**
+ * Envoi via l'API REST Twilio (SMS ou WhatsApp selon TWILIO_CHANNEL).
+ * Aucune dependance npm : l'API Twilio est un simple POST forme + Basic Auth.
+ */
+async function sendViaTwilio(phone: string, message: string): Promise<{ delivered: boolean }> {
+  const wrap = (n: string) =>
+    TWILIO.channel === 'whatsapp' && !n.startsWith('whatsapp:') ? `whatsapp:${n}` : n;
+
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO.accountSid}/Messages.json`;
+  const basicAuth = Buffer.from(`${TWILIO.accountSid}:${TWILIO.authToken}`).toString('base64');
+  const body = new URLSearchParams({
+    To: wrap(phone),
+    From: wrap(TWILIO.fromNumber),
+    Body: message,
+  });
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body,
+    });
+    if (!res.ok) {
+      console.error('[otp] Twilio en erreur', res.status, await res.text().catch(() => ''));
+      return { delivered: false };
+    }
+    return { delivered: true };
+  } catch (e) {
+    console.error('[otp] Twilio injoignable', e);
+    return { delivered: false };
+  }
 }
 
 /** Le code doit-il etre renvoye au navigateur ? Uniquement hors production. */

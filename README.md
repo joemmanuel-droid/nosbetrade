@@ -63,7 +63,7 @@ peux pas le faire à ta place.
 |---|---|---|
 | **Vrais numéros Mobile Money** | Ce sont tes numéros marchands | `.env` → `MM_ORANGE_NUMBER` etc. |
 | **Compte Turso** (base de données production) | Création de compte tiers | [turso.tech](https://turso.tech) → `DATABASE_URL`/`DATABASE_AUTH_TOKEN` |
-| **Passerelle SMS/WhatsApp pour l'OTP** | Création de compte + coût récurrent | `.env` → `OTP_TRANSPORT=http` + `OTP_HTTP_URL` |
+| **Compte Twilio (SMS/WhatsApp réel pour l'OTP)** | Création de compte + coût récurrent | [twilio.com](https://www.twilio.com/try-twilio) → `.env` → `OTP_TRANSPORT=twilio` + `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_FROM_NUMBER`. Intégration déjà codée. |
 | **Compte CinetPay ou LigdiCash** (paiement auto) | Création de compte + KYC business | `.env` → `PAYMENT_PROVIDER` + clés. Sinon rester en manuel seul, déjà pleinement fonctionnel |
 | **Nom de domaine + hébergement** | Achat + choix d'hébergeur | Puis mettre à jour `APP_URL` |
 | **Relecture des pages légales** | Rédaction automatique = point de départ, pas un avis juridique | `/cgv`, `/mentions-legales` — remplacer les `[à compléter]` |
@@ -161,7 +161,9 @@ Les plus importantes :
 | `SESSION_SECRET` | Signature des sessions. Génère avec `npm run gen:secret`. **Obligatoire en production** (l'app refuse de démarrer sans). |
 | `DATABASE_URL` | `file:./data/app.db` en local, `libsql://...` (Turso) en production. |
 | `PAYMENT_PROVIDER` | `simulation` (dev) / `cinetpay` / `ligdicash`. Le bouton auto reste masqué aux vrais clients tant que c'est `simulation`. |
-| `OTP_TRANSPORT` | `console` (dev, code affiché dans l'app) / `http` (branche ta passerelle SMS). |
+| `OTP_TRANSPORT` | `console` (dev/test privé, code dans les logs serveur) / `twilio` (SMS ou WhatsApp réel, voir ci-dessous) / `http` (passerelle générique). |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | Identifiants Twilio pour l'envoi réel des codes OTP. |
+| `TWILIO_CHANNEL` | `sms` (défaut) ou `whatsapp` — même compte Twilio pour les deux, un seul réglage à changer. |
 | `ADMIN_PHONES` | Numéros (séparés par virgules) autorisés sur `/admin`. |
 | `ADMIN_ACCESS_CODE` | Second facteur admin, distinct du téléphone — voir [Sécurité du back-office](#sécurité-du-back-office). **Fortement recommandé** dès que `ADMIN_PHONES` sert aussi de numéro de paiement. |
 | `ADMIN_NOTIFY_URL` | Webhook notifié à chaque commande manuelle à valider (URL Slack/Discord ou autre). Optionnel. |
@@ -175,10 +177,18 @@ Les plus importantes :
    Lancer `npm run db:init` une fois avant le premier déploiement.
 2. **Secret de session** — `npm run gen:secret`, coller dans `SESSION_SECRET`
    de l'hébergeur. Ne jamais réutiliser le secret de développement.
-3. **SMS/OTP** — passer `OTP_TRANSPORT=http` et `OTP_HTTP_URL` vers une
-   passerelle SMS locale (ou WhatsApp Business API). Le format attendu est
-   `POST { to, message }`. Sans ça, les codes ne sont visibles que dans les
-   logs serveur — inutilisable pour de vrais clients.
+3. **SMS/OTP** — sans ça, les codes ne sont visibles que dans les logs
+   serveur : inutilisable pour de vrais clients (seulement pour toi, en test
+   privé, avant l'ouverture au public). Deux options :
+   - **Twilio** (intégration déjà codée) — crée un compte sur
+     [twilio.com](https://www.twilio.com/try-twilio), récupère `Account SID`,
+     `Auth Token` et un numéro d'envoi, puis `OTP_TRANSPORT=twilio` +
+     `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_FROM_NUMBER`. Vérifie
+     toi-même la fiabilité de livraison SMS vers le Burkina Faso avant de
+     t'engager (l'essai gratuit suffit pour tester) ; `TWILIO_CHANNEL=whatsapp`
+     bascule sur WhatsApp avec le même compte si le SMS ne convient pas.
+   - **Autre passerelle** — `OTP_TRANSPORT=http` + `OTP_HTTP_URL` vers
+     n'importe quel service qui accepte `POST { to, message }`.
 4. **Paiement automatique** (optionnel, le manuel fonctionne sans) —
    ouvrir un compte [CinetPay](https://cinetpay.com) ou
    [LigdiCash](https://ligdicash.com), renseigner les clés, `PAYMENT_PROVIDER`,
